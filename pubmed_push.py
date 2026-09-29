@@ -8,7 +8,6 @@ from email.mime.text import MIMEText
 from email.header import Header
 from xml.etree import ElementTree as ET
 
-# 如果本地运行，可以直接改下面默认值；GitHub 上会从 Secrets 读取
 SENDER = os.getenv("SENDER_EMAIL", "你的QQ邮箱@qq.com")
 PASSWORD = os.getenv("SENDER_PASSWORD", "你的QQ邮箱授权码")
 RECEIVER = os.getenv("RECEIVER_EMAIL", SENDER)
@@ -19,7 +18,6 @@ SMTP_SERVER = "smtp.qq.com"
 SMTP_PORT = 465
 SEEN_FILE = "seen_pmids.json"
 
-
 def load_seen():
     if os.path.exists(SEEN_FILE):
         try:
@@ -29,26 +27,31 @@ def load_seen():
             return set()
     return set()
 
-
 def save_seen(seen):
     with open(SEEN_FILE, "w", encoding="utf-8") as f:
         json.dump({"pmids": list(seen)[-5000:]}, f, ensure_ascii=False)
 
-
 def search_pubmed():
     year = datetime.now().year
-
-        query = (
-        '("obesity"[mh] OR obesity[tiab] OR obese[tiab] OR overweight[tiab]) '
+    query = (
+        '("Obesity"[Mesh] OR "Obesity, Abdominal"[Mesh] OR "Obesity, Morbid"[Mesh] '
+        'OR "Overweight"[Mesh] OR "Body Mass Index"[Mesh] '
+        'OR obes*[tiab] OR overweight[tiab] OR "body mass index"[tiab] '
+        'OR "abdominal obesity"[tiab] OR "central obesity"[tiab] OR adipos*[tiab]) '
         'AND '
-        '("hypertension"[mh] OR hypertension[tiab] OR "high blood pressure"[tiab]) '
+        '("Hypertension"[Mesh] OR "Essential Hypertension"[Mesh] OR "Blood Pressure"[Mesh] '
+        'OR hypertension[tiab] OR "high blood pressure"[tiab] '
+        'OR "elevated blood pressure"[tiab] OR hypertensive[tiab]) '
         'AND '
-        '("myocardial remodeling"[tiab] OR "cardiac remodeling"[tiab] '
+        '("Ventricular Remodeling"[Mesh] OR "Cardiac Remodeling, Ventricular"[Mesh] '
+        'OR "Myocardial Fibrosis"[Mesh] OR "Cardiomegaly"[Mesh] '
+        'OR "Hypertrophy, Left Ventricular"[Mesh] '
+        'OR "myocardial remodeling"[tiab] OR "cardiac remodeling"[tiab] '
         'OR "ventricular remodeling"[tiab] OR "myocardial fibrosis"[tiab] '
-        'OR "cardiac hypertrophy"[tiab] OR "myocardial remodelling"[tiab]) '
+        'OR "cardiac hypertrophy"[tiab] OR "myocardial remodelling"[tiab] '
+        'OR "cardiac fibrosis"[tiab] OR "left ventricular hypertrophy"[tiab]) '
         f'AND ({year}[dp] : 3000[dp])'
     )
-
     params = {
         "db": "pubmed",
         "term": query,
@@ -126,10 +129,8 @@ def search_pubmed():
 
     return articles
 
-
 def send_email(articles):
     today = datetime.now().strftime("%Y-%m-%d")
-
     html = f"<h2>PubMed 新文献 {today}，共 {len(articles)} 篇</h2>"
 
     for i, a in enumerate(articles, 1):
@@ -155,7 +156,6 @@ def send_email(articles):
         server.login(SENDER, PASSWORD)
         server.sendmail(SENDER, [RECEIVER], msg.as_string())
 
-
 def main():
     seen = load_seen()
     articles = search_pubmed()
@@ -170,9 +170,7 @@ def main():
     for a in new_articles:
         seen.add(a["pmid"])
     save_seen(seen)
-
     print(f"已发送 {len(new_articles)} 篇")
-
 
 if __name__ == "__main__":
     main()
