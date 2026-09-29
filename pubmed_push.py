@@ -38,7 +38,7 @@ def save_seen(seen):
 def search_pubmed():
     year = datetime.now().year
 
-    query = (
+        query = (
         '("obesity"[mh] OR obesity[tiab] OR obese[tiab] OR overweight[tiab]) '
         'AND '
         '("hypertension"[mh] OR hypertension[tiab] OR "high blood pressure"[tiab]) '
